@@ -1,0 +1,112 @@
+---
+title: "Kendrick Lamar vs Drake: A Data-Driven Comparison"
+author: "Feiyang Xue & Zixi Zhang"
+date: "2024-10-10"
+format: pdf
+---
+
+## Introduction
+
+This report compares the musical careers of two of the biggest names in hip-hop: Kendrick Lamar and Drake. Over the years, these artists have competed for dominance in the genre, each with a distinct style and approach to music. We analyze their popularity, musical features (energy, danceability), and release trends to understand who leads in different aspects of their craft.
+
+## Popularity Comparison
+
+By analyzing the top 10 tracks for both artists, we observe that Drake’s tracks tend to be more popular on average compared to Kendrick Lamar’s.
+
+```{r}
+library(spotifyr)
+library(dplyr)
+library(purrr)
+library(tibble)
+library(ggplot2)
+library(lubridate)
+
+# Set up the Spotify API credentials
+Sys.setenv(SPOTIFY_CLIENT_ID = '521b056c02914891b76f828c31982313')
+Sys.setenv(SPOTIFY_CLIENT_SECRET = '817ceb170a6340b3880b9dfc6ed2a8d0')
+access_token <- get_spotify_access_token()
+
+# Function to fetch artist data
+get_artist_data <- function(artist_name) {
+  artist <- search_spotify(artist_name, type = 'artist') %>%
+    filter(name == artist_name) %>%
+    slice(1)
+  
+  top_tracks <- get_artist_top_tracks(artist$id[1], market = "US")
+  
+  # Extract relevant data
+  track_data <- top_tracks %>%
+    mutate(
+      track_id = id,   # Use track ID for joining
+      track_name = name,
+      popularity = popularity,
+      duration_minutes = duration_ms / 60000,
+      release_date = album.release_date,
+      album_name = album.name
+    ) %>%
+    select(track_id, track_name, popularity, duration_minutes, release_date, album_name)
+  
+  # Get audio features for tracks
+  track_features <- map_df(top_tracks$id, get_track_audio_features)
+  
+  # Combine top track data with track features using track_id for joining
+  combined_data <- left_join(track_data, track_features, by = c("track_id" = "id"))
+  
+  return(combined_data)
+}
+
+# Fetch data for both Kendrick Lamar and Drake
+kendrick_data <- get_artist_data("Kendrick Lamar")
+drake_data <- get_artist_data("Drake")
+
+
+
+
+
+
+
+# 2.Track Feature Comparison: Energy and Danceability
+# Plot comparison of track features
+library(ggplot2)
+
+# Combine both artists' data into one dataframe for comparison
+combined_data <- bind_rows(
+  kendrick_data %>% mutate(artist = "Kendrick Lamar"),
+  drake_data %>% mutate(artist = "Drake")
+)
+
+
+```
+##Track Features: Energy and Danceability
+
+We compare the energy and danceability of tracks. On average, Drake’s tracks are more danceable, while Kendrick Lamar’s tracks have a higher energy level.
+
+```{r}
+# Energy and Danceability Comparison plots
+ggplot(combined_data, aes(x = artist, y = energy)) +
+  geom_boxplot() +
+  labs(title = "Energy Comparison", y = "Energy", x = "Artist") +
+  theme_minimal()
+
+
+```
+```{r}
+ggplot(combined_data, aes(x = artist, y = danceability)) +
+  geom_boxplot() +
+  labs(title = "Danceability Comparison", y = "Danceability", x = "Artist") +
+  theme_minimal()
+```
+##Release Trends
+In terms of release consistency, both artists have had frequent releases over the years. The release density chart below shows who has been more active in specific time periods.
+
+
+```{r}
+# 3. Release Trends
+# Plot release trends over time
+combined_data$release_date <- as.Date(combined_data$release_date)
+
+ggplot(combined_data, aes(x = release_date, color = artist)) +
+  geom_density() +
+  labs(title = "Release Trends Over Time: Kendrick Lamar vs Drake", x = "Release Date", y = "Density") +
+  theme_minimal()
+```
