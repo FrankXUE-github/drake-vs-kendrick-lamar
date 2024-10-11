@@ -2,18 +2,26 @@
 title: "Kendrick Lamar vs Drake: A Data-Driven Comparison"
 author: "Feiyang Xue & Zixi Zhang"
 date: "2024-10-10"
-format: pdf
+format: 
+  pdf:
+    code: false
+bibliography: references.bib
 ---
 
 ## Introduction
 
 This report compares the musical careers of two of the biggest names in hip-hop: Kendrick Lamar and Drake. Over the years, these artists have competed for dominance in the genre, each with a distinct style and approach to music. We analyze their popularity, musical features (energy, danceability), and release trends to understand who leads in different aspects of their craft.
 
+## Data Source
+The data for this analysis is sourced from Spotify's Web API [@spotify_data].
+
 ## Popularity Comparison
 
 By analyzing the top 10 tracks for both artists, we observe that Drake’s tracks tend to be more popular on average compared to Kendrick Lamar’s.
 
 ```{r}
+#| echo: false
+#| include: false
 library(spotifyr)
 library(dplyr)
 library(purrr)
@@ -58,30 +66,40 @@ get_artist_data <- function(artist_name) {
 # Fetch data for both Kendrick Lamar and Drake
 kendrick_data <- get_artist_data("Kendrick Lamar")
 drake_data <- get_artist_data("Drake")
+```
 
 
+## 1. Popularity Comparison
 
+By analyzing the top 10 tracks for both artists, we observe that Drake’s tracks tend to be more popular on average compared to Kendrick Lamar’s, with an average popularity score of  avg_popularity_drake for Drake versus  avg_popularity_kendrick for Kendrick Lamar.
 
-
-
-
-# 2.Track Feature Comparison: Energy and Danceability
-# Plot comparison of track features
-library(ggplot2)
-
-# Combine both artists' data into one dataframe for comparison
+```{r}
+#| echo: false
+# Bar plot for popularity comparison
 combined_data <- bind_rows(
   kendrick_data %>% mutate(artist = "Kendrick Lamar"),
   drake_data %>% mutate(artist = "Drake")
 )
 
+ggplot(combined_data, aes(x = artist, y = popularity, fill = artist)) +
+  geom_bar(stat = "summary", fun = "mean") +
+  labs(title = "Average Popularity: Kendrick Lamar vs Drake", y = "Average Popularity", x = "Artist") +
+  theme_minimal()
+
+
+
+
+
 
 ```
-##Track Features: Energy and Danceability
+ both artists are very popular, but Kendrick Lamar's top tracks have a slightly higher average popularity than Drake’s, based on this data. The comparison suggests that while Drake consistently produces popular tracks, Kendrick Lamar's specific works resonate strongly with audiences.
+ 
+##2. Track Features: Energy and Danceability
 
 We compare the energy and danceability of tracks. On average, Drake’s tracks are more danceable, while Kendrick Lamar’s tracks have a higher energy level.
 
 ```{r}
+#| echo: false
 # Energy and Danceability Comparison plots
 ggplot(combined_data, aes(x = artist, y = energy)) +
   geom_boxplot() +
@@ -91,16 +109,30 @@ ggplot(combined_data, aes(x = artist, y = energy)) +
 
 ```
 ```{r}
+#| echo: false
 ggplot(combined_data, aes(x = artist, y = danceability)) +
   geom_boxplot() +
   labs(title = "Danceability Comparison", y = "Danceability", x = "Artist") +
   theme_minimal()
 ```
+For Energy Comparison:
+The energy levels of Drake’s tracks vary more widely compared to Kendrick Lamar’s. The interquartile range (IQR) of Drake's tracks is larger, indicating greater variability in how energetic his songs are.
+Drake's median energy level is higher than Kendrick Lamar's, suggesting that, on average, his songs tend to have a higher sense of intensity or drive.
+Kendrick Lamar's energy levels are more consistent, with a smaller IQR and less variation across his tracks.
+The median energy level for Kendrick Lamar is slightly lower than Drake’s, indicating that his tracks are generally less energetic than Drake’s.
+
+For Danceability Comparison:
+Drake’s tracks have a higher median danceability, indicating that his music is generally designed to be easier to dance to.
+The variability in danceability is similar for both artists, but Drake’s tracks consistently score higher on this metric.
+While Kendrick Lamar’s tracks are still danceable, they tend to be slightly less so than Drake’s, based on the lower median in this boxplot.
+This suggests that Kendrick Lamar’s music, while still rhythmic, may be focused more on lyrical complexity or mood rather than being specifically crafted for dancing.
+
 ##Release Trends
 In terms of release consistency, both artists have had frequent releases over the years. The release density chart below shows who has been more active in specific time periods.
 
 
 ```{r}
+#| echo: false
 # 3. Release Trends
 # Plot release trends over time
 combined_data$release_date <- as.Date(combined_data$release_date)
@@ -110,3 +142,17 @@ ggplot(combined_data, aes(x = release_date, color = artist)) +
   labs(title = "Release Trends Over Time: Kendrick Lamar vs Drake", x = "Release Date", y = "Density") +
   theme_minimal()
 ```
+
+The plot shows the release density trends for Drake and Kendrick Lamar from 2016 to 2024. It represents the density of track releases over time, helping us understand how consistently each artist has been releasing music.
+
+Kendrick Lamar was highly active around 2017-2018, peaking in terms of release density during this time. This may correspond to major album releases like DAMN. (released in 2017), which was a significant moment in his career.
+After 2018, Kendrick Lamar’s release density drops off, suggesting a hiatus or a period of fewer releases.
+There is a slight resurgence starting around 2023, indicating that Kendrick Lamar may have started releasing more music again recently.
+
+Drake's release activity shows a steady increase, with peaks in 2020-2022, coinciding with multiple album releases such as Scorpion (2018), Certified Lover Boy (2021), and Honestly, Nevermind (2022).
+The density peak around 2021-2022 reflects Drake's consistency in producing new music, likely with several singles and albums being released.
+Unlike Kendrick, Drake's release activity remains high in the later years (2023-2024), showing a pattern of continuous and frequent releases.
+
+For Comparison,
+Activity in Specific Periods: Kendrick Lamar had a higher release density earlier (2016-2018), while Drake has maintained a more consistent release schedule in the 2020s.
+Recent Activity: Drake has been more active post-2020, releasing more frequently, whereas Kendrick Lamar’s releases have been more sporadic after 2018, although there’s a sign of a comeback in 2023.
